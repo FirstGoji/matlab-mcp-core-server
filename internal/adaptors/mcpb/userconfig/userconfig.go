@@ -55,6 +55,10 @@ func GetUserConfig() (map[string]userConfigEntry, error) {
 			ParameterWithDescriptionFromMessageCatalog: defaultparameters.MATLABDisplayMode(),
 			Title: "MATLAB Display Mode",
 		},
+		{
+			ParameterWithDescriptionFromMessageCatalog: defaultparameters.MATLABSessionMode(),
+			Title: "MATLAB Session Mode",
+		},
 	}
 
 	config := make(map[string]userConfigEntry, len(parametersForMCPB))
