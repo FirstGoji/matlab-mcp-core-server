@@ -18,7 +18,7 @@ func TestGetUserConfig_HappyPath(t *testing.T) {
 
 	// Assert
 	require.NoError(t, err)
-	require.Len(t, config, 7)
+	require.Len(t, config, 8)
 
 	expectedKeys := []string{
 		"PreferredLocalMATLABRoot",
@@ -28,6 +28,7 @@ func TestGetUserConfig_HappyPath(t *testing.T) {
 		"DisableTelemetry",
 		"MATLABDisplayMode",
 		"MATLABSessionMode",
+		"ExtensionFile",
 	}
 
 	for _, key := range expectedKeys {
@@ -42,7 +43,7 @@ func TestGetUserConfig_HappyPath(t *testing.T) {
 
 func TestGetUserConfig_TypesAreValid(t *testing.T) {
 	// Arrange
-	validTypes := map[string]bool{"string": true, "boolean": true, "directory": true}
+	validTypes := map[string]bool{"string": true, "boolean": true, "directory": true, "file": true}
 
 	// Act
 	config, err := userconfig.GetUserConfig()
@@ -73,6 +74,26 @@ func TestGetUserConfig_DirectoryTypeOverrides(t *testing.T) {
 		entry, exists := config[key]
 		if assert.True(t, exists, "expected key %s not found", key) {
 			assert.Equal(t, "directory", entry.Type, "entry %s should have type 'directory'", key)
+		}
+	}
+}
+
+func TestGetUserConfig_FileTypeOverrides(t *testing.T) {
+	// Arrange
+	expectedFileKeys := []string{
+		"ExtensionFile",
+	}
+
+	// Act
+	config, err := userconfig.GetUserConfig()
+
+	// Assert
+	require.NoError(t, err)
+
+	for _, key := range expectedFileKeys {
+		entry, exists := config[key]
+		if assert.True(t, exists, "expected key %s not found", key) {
+			assert.Equal(t, "file", entry.Type, "entry %s should have type 'file'", key)
 		}
 	}
 }

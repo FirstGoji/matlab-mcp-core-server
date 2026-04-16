@@ -35,7 +35,8 @@
         "__MATLAB_MCP_CORE_SERVER_MCPB_INIT_ON_START": "${user_config.InitializeMATLABOnStartup}",
         "__MATLAB_MCP_CORE_SERVER_MCPB_DISABLE_TELEM": "${user_config.DisableTelemetry}",
         "__MATLAB_MCP_CORE_SERVER_MCPB_DISPLAY_MODE": "${user_config.MATLABDisplayMode}",
-        "__MATLAB_MCP_CORE_SERVER_MCPB_MATLAB_SESSION_MODE": "${user_config.MATLABSessionMode}"
+        "__MATLAB_MCP_CORE_SERVER_MCPB_MATLAB_SESSION_MODE": "${user_config.MATLABSessionMode}",
+        "__MATLAB_MCP_CORE_SERVER_MCPB_EXTENSION_FILE": "${user_config.ExtensionFile}"
       },
       "platform_overrides": {
         "win32": {

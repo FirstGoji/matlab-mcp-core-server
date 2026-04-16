@@ -59,6 +59,11 @@ func GetUserConfig() (map[string]userConfigEntry, error) {
 			ParameterWithDescriptionFromMessageCatalog: defaultparameters.MATLABSessionMode(),
 			Title: "MATLAB Session Mode",
 		},
+		{
+			ParameterWithDescriptionFromMessageCatalog: defaultparameters.ExtensionFile(),
+			Title:        "Extension File",
+			TypeOverride: "file",
+		},
 	}
 
 	config := make(map[string]userConfigEntry, len(parametersForMCPB))

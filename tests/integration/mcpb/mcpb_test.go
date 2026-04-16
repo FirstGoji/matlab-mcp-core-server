@@ -153,7 +153,7 @@ func assertManifestStaged(t *testing.T, stagingDir string) {
 
 	userConfigRaw, ok := manifest["user_config"].(map[string]any)
 	require.True(t, ok)
-	assert.Len(t, userConfigRaw, 7)
+	assert.Len(t, userConfigRaw, 8)
 
 	assertEnvVarsMatchUserConfig(t, manifest, userConfigRaw)
 }
