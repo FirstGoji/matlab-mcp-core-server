@@ -2,8 +2,8 @@ classdef DefaultAPIKeyManager < mcpcoreserver.internal.connector.internal.apikey
     %DefaultAPIKeyManager Default implementation for MATLAB Connector API key management
     %   This class handles API key retrieval based on MATLAB version:
     %   - Prior to R2023a: throws UnsupportedMATLABVersion error
-    %   - R2023a to R2024a: generates secure key, calls setConfig, then getConfig
-    %   - R2024b onwards: directly calls getConfig
+    %   - R2023a to R2024b: generates secure key, calls setConfig, then getConfig
+    %   - R2025a onwards: directly calls getConfig
 
     % Copyright 2026 The MathWorks, Inc.
 
@@ -30,13 +30,14 @@ classdef DefaultAPIKeyManager < mcpcoreserver.internal.connector.internal.apikey
                 throw(mcpcoreserver.internal.error.Errors.UnsupportedMATLABVersion());
             end
 
-            % R2024b onwards: auto-generated key + step out if key is set
+            % Auto-generated key or key was previously set
+            % This should true for R2025a onwards
             apiKey = obj.ConnectorFacade.getConfig("apiKey");
-            if ~obj.MATLABFacade.isMATLABReleaseOlderThan("R2024b") || (apiKey ~= "")
+            if apiKey ~= ""
                 return;
             end
 
-            % R2023a to R2024a inclusive: generate and set secure key
+            % R2023a to R2024b inclusive: generate and set secure key
             key = obj.SecureGenerator.generateKey();
             obj.ConnectorFacade.setConfig("apiKey", key);
             apiKey = obj.ConnectorFacade.getConfig("apiKey");
