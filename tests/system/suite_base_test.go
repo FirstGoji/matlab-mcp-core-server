@@ -185,7 +185,9 @@ func (s *SystemTestSuite) CreateMCPSession(ctx context.Context, env []string, se
 		logFolderLocation = filepath.Join(base, "logs")
 		s.Require().NoError(os.MkdirAll(logFolderLocation, 0750), "should create log folder")
 		s.T().Cleanup(func() {
-			s.NoError(os.RemoveAll(base), "should remove log temp dir")
+			if err := os.RemoveAll(base); err != nil {
+				s.T().Logf("Failed to remove log temp dir (may be locked on Windows): %v", err)
+			}
 		})
 	}
 

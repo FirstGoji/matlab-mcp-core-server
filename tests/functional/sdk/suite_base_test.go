@@ -111,7 +111,9 @@ func (s *SDKTestSuite) CreateSession(serverPath string, env []string, sessionOpt
 		logFolder = filepath.Join(base, "logs")
 		s.Require().NoError(os.MkdirAll(logFolder, 0750), "should create SDK log folder")
 		s.T().Cleanup(func() {
-			s.NoError(os.RemoveAll(base), "should remove SDK log temp dir")
+			if err := os.RemoveAll(base); err != nil {
+				s.T().Logf("Failed to remove SDK log temp dir (may be locked on Windows): %v", err)
+			}
 		})
 	}
 

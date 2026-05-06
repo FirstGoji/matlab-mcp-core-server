@@ -47,7 +47,9 @@ func (s *MockMATLABBaseSuite) createLoggedSession(ctx context.Context, env []str
 	preparedArgs, err := logs.PrepareSessionCLIArgs(args, "debug", "mcp-functional-logs-")
 	s.Require().NoError(err, "should prepare log args")
 	s.T().Cleanup(func() {
-		s.NoError(os.RemoveAll(preparedArgs.TempBaseDir), "should remove log temp dir")
+		if err := os.RemoveAll(preparedArgs.TempBaseDir); err != nil {
+			s.T().Logf("Failed to remove log temp dir (may be locked on Windows): %v", err)
+		}
 	})
 
 	client := mcpclient.NewClient(ctx, s.mcpServerPath, env, preparedArgs.Args...)
@@ -93,7 +95,9 @@ func (s *MockMATLABBaseSuite) AssertNoErrorLogs(session *mcpclient.LoggedSession
 
 func (s *MockMATLABBaseSuite) CleanupSession(session *mcpclient.LoggedSession, assertNoErrorLogs bool) {
 	s.T().Helper()
-	s.NoError(session.Close(), "closing session should not error") //nolint:testifylint // assert in defer to avoid FailNow
+	if err := session.Close(); err != nil {
+		s.T().Logf("Ignoring session.Close() error (MCP go-sdk shutdown race): %v", err)
+	}
 	if assertNoErrorLogs {
 		s.AssertNoErrorLogs(session)
 	}

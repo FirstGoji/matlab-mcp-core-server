@@ -35,7 +35,9 @@ func (s *ServerWithLoggingTestSuite) TestSDK_Logging_DependenciesAndToolsProvide
 	logFolder, err := os.MkdirTemp("", "server_session") // Can't use s.T().Tempdir() because too long for socket path
 	s.Require().NoError(err)
 	defer func() {
-		s.NoError(os.RemoveAll(logFolder), "should remove log folder")
+		if err := os.RemoveAll(logFolder); err != nil {
+			s.T().Logf("Failed to remove log folder (may be locked on Windows): %v", err)
+		}
 	}()
 
 	// This suite intentionally verifies logging behavior and may emit ERROR logs.
@@ -70,7 +72,9 @@ func (s *ServerWithLoggingTestSuite) TestSDK_Logging_ToolHandlerLogsToFile() {
 	logFolder, err := os.MkdirTemp("", "server_session") // Can't use s.T().Tempdir() because too long for socket path
 	s.Require().NoError(err)
 	defer func() {
-		s.NoError(os.RemoveAll(logFolder), "should remove log folder")
+		if err := os.RemoveAll(logFolder); err != nil {
+			s.T().Logf("Failed to remove log folder (may be locked on Windows): %v", err)
+		}
 	}()
 
 	name := "World"
