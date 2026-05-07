@@ -65,6 +65,7 @@ import (
 	runmatlabtestfile2 "github.com/matlab/matlab-mcp-core-server/internal/adaptors/mcp/tools/singlesession/runmatlabtestfile"
 	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/messagecatalog"
 	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/os"
+	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/resourcelimit"
 	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/telemetry"
 	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/telemetry/otel/instruments"
 	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/telemetry/otel/meter/exporter"
@@ -76,6 +77,7 @@ import (
 	"github.com/matlab/matlab-mcp-core-server/internal/facades/iofacade"
 	"github.com/matlab/matlab-mcp-core-server/internal/facades/osfacade"
 	"github.com/matlab/matlab-mcp-core-server/internal/facades/registryfacade"
+	"github.com/matlab/matlab-mcp-core-server/internal/facades/unix"
 	"github.com/matlab/matlab-mcp-core-server/internal/usecases/checkmatlabcode"
 	"github.com/matlab/matlab-mcp-core-server/internal/usecases/detectmatlabtoolboxes"
 	"github.com/matlab/matlab-mcp-core-server/internal/usecases/evalcustomtool"
@@ -177,7 +179,9 @@ func Initialize(serverDefinition ApplicationDefinition) *Application {
 	customFactory := custom.NewFactory(loaderLoader, loggerFactory, evalcustomtoolUsecase, globalMATLAB, factory)
 	configuratorConfigurator := configurator.New(factory, serverDefinition, tool, startmatlabsessionTool, stopmatlabsessionTool, evalmatlabcodeTool, tool2, checkmatlabcodeTool, detectmatlabtoolboxesTool, runmatlabfileTool, runmatlabtestfileTool, resource, plaintextlivecodegenerationResource, customFactory)
 	serverServer := server3.New(sdkFactory, loggerFactory, lifecycleSignaler, configuratorConfigurator)
-	orchestratorOrchestrator := orchestrator.New(messageCatalog, lifecycleSignaler, serverDefinition, factory, serverServer, watchdog3, loggerFactory, processManager, directoryFactory)
+	unixFacade := unix.New()
+	manager := resourcelimit.New(loggerFactory, unixFacade)
+	orchestratorOrchestrator := orchestrator.New(messageCatalog, lifecycleSignaler, serverDefinition, factory, serverServer, watchdog3, loggerFactory, processManager, directoryFactory, manager)
 	installationSteps := installationsteps.New()
 	addonManager := addonmanager.New(installationSteps)
 	mode := setupmatlab.New(osFacade, messageCatalog, loggerFactory, directoryFactory, watchdog3, globalMATLAB, addonManager)

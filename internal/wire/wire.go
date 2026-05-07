@@ -77,6 +77,8 @@ import (
 	"github.com/matlab/matlab-mcp-core-server/internal/facades/iofacade"
 	"github.com/matlab/matlab-mcp-core-server/internal/facades/osfacade"
 	"github.com/matlab/matlab-mcp-core-server/internal/facades/registryfacade"
+	unixfacade "github.com/matlab/matlab-mcp-core-server/internal/facades/unix"
+	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/resourcelimit"
 	"github.com/matlab/matlab-mcp-core-server/internal/usecases/checkmatlabcode"
 	"github.com/matlab/matlab-mcp-core-server/internal/usecases/detectmatlabtoolboxes"
 	"github.com/matlab/matlab-mcp-core-server/internal/usecases/evalcustomtool"
@@ -209,6 +211,7 @@ func Initialize(serverDefinition ApplicationDefinition) *Application {
 		wire.Bind(new(orchestrator.LoggerFactory), new(*logger.Factory)),
 		wire.Bind(new(orchestrator.OSSignaler), new(*osadaptor.ProcessManager)),
 		wire.Bind(new(orchestrator.DirectoryFactory), new(*directory.Factory)),
+		wire.Bind(new(orchestrator.ResourceLimitManager), new(*resourcelimit.Manager)),
 
 		// MCP Server
 		server.New,
@@ -523,6 +526,12 @@ func Initialize(serverDefinition ApplicationDefinition) *Application {
 		iofacade.New,
 		filefacade.New,
 		registryfacade.New,
+		unixfacade.New,
+
+		// Resource Limit
+		resourcelimit.New,
+		wire.Bind(new(resourcelimit.LoggerFactory), new(*logger.Factory)),
+		wire.Bind(new(resourcelimit.SyscallLayer), new(*unixfacade.UnixFacade)),
 	)
 
 	return nil
