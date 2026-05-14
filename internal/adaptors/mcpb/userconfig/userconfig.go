@@ -64,6 +64,10 @@ func GetUserConfig() (map[string]userConfigEntry, error) {
 			Title:        "Extension File",
 			TypeOverride: "file",
 		},
+		{
+			ParameterWithDescriptionFromMessageCatalog: defaultparameters.LogLevel(),
+			Title: "Log Level",
+		},
 	}
 
 	config := make(map[string]userConfigEntry, len(parametersForMCPB))

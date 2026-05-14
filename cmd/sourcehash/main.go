@@ -45,7 +45,7 @@ func main() {
 			} else {
 				fmt.Fprintf(os.Stderr, "sourcehash: %v\n", err)
 			}
-			fmt.Fprintf(os.Stderr, "Run 'make update-embedded-matlab-addon' to update it.\n")
+			fmt.Fprintf(os.Stderr, "The embedded MATLAB addon needs to be regenerated.\n")
 			os.Exit(1)
 		}
 		fmt.Println("Source hash OK")

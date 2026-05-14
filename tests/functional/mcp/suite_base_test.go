@@ -17,8 +17,8 @@ import (
 )
 
 // MCPTestSuite provides common setup for functional MCP tests that use a fake
-// MATLAB installation. It launches the real MCP server binary (from `make build`)
-// with the fake MATLAB on PATH.
+// MATLAB installation. It launches the real MCP server binary with the fake
+// MATLAB on PATH.
 type MCPTestSuite struct {
 	suite.Suite
 
@@ -32,7 +32,7 @@ type MCPTestSuite struct {
 
 func (s *MCPTestSuite) SetupSuite() {
 	mcpServerPath, err := mcpserver.NewLocator().GetPath()
-	s.Require().NoError(err, "MCP server binary not found — run 'make build' first")
+	s.Require().NoError(err, "MCP server binary not found — ensure MATLAB_MCP_CORE_SERVER_BUILD_DIR is set and the binary is built")
 	s.mcpServerPath = mcpServerPath
 
 	s.fakeMatlab = fakematlab.CreateExecutable(s.T())

@@ -30,7 +30,7 @@ func (s *MockMATLABBaseSuite) SetupSuite() {
 	s.installation = mockmatlab.BuildAndInstall(s.T())
 
 	mcpServerPath, err := mcpserver.NewLocator().GetPath()
-	s.Require().NoError(err, "MCP server binary not found — run 'make build' first")
+	s.Require().NoError(err, "MCP server binary not found — ensure MATLAB_MCP_CORE_SERVER_BUILD_DIR is set and the binary is built")
 	s.mcpServerPath = mcpServerPath
 
 	sessionFactory, err := mcpclient.NewLoggedSessionFactory(logs.NewReader(), filefacade.RealFileSystem{})

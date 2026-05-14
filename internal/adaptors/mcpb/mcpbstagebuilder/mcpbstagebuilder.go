@@ -41,7 +41,7 @@ func Build(version string) error {
 	}
 
 	if _, err := os.Stat(mcpbStaging); err == nil {
-		return fmt.Errorf("staging directory %q already exists; remove it first (e.g., make mcpb-clean)", mcpbStaging)
+		return fmt.Errorf("staging directory %q already exists; remove it first", mcpbStaging)
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("failed to stat staging directory %q: %w", mcpbStaging, err)
 	}

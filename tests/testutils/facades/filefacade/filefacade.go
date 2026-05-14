@@ -3,6 +3,7 @@
 package filefacade
 
 import (
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -33,6 +34,10 @@ func (RealFileSystem) ReadFile(fileSystem fs.FS, name string) ([]byte, error) {
 
 func (RealFileSystem) Glob(fileSystem fs.FS, pattern string) ([]string, error) {
 	return fs.Glob(fileSystem, pattern)
+}
+
+func (RealFileSystem) OpenFile(name string, flag int, perm fs.FileMode) (io.WriteCloser, error) {
+	return os.OpenFile(name, flag, perm) //nolint:gosec // Thin facade delegates to caller's judgement
 }
 
 func (RealFileSystem) EvalSymlinks(path string) (string, error) {

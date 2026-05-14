@@ -114,6 +114,7 @@ TEST_TARGETS := \
 $(TEST_TARGETS): export PATH := $(BIN_PATH)$(PATHSEP)$(PATH)
 $(TEST_TARGETS): export MATLAB_MCP_CORE_SERVER_BUILD_DIR := $(MATLAB_MCP_CORE_SERVER_BUILD_DIR)
 $(TEST_TARGETS): export MCP_MATLAB_PATH := $(MCP_MATLAB_PATH)
+$(TEST_TARGETS): export MCPB_ARTIFACT_PATH := $(or $(MCPB_ARTIFACT_PATH),$(MCPB_STAGING_DIR)/$(MCPB_FILENAME))
 
 # --- Build flags ---
 
@@ -125,7 +126,7 @@ else
 	LDFLAGS_ARG :=
 endif
 
-all: wire mockery lint unit-tests integration-tests build functional-tests mcpb-clean mcpb-dev
+all: wire mockery lint unit-tests integration-tests build mcpb-clean mcpb-dev functional-tests
 
 # =============================================================================
 # 2. CI Targets

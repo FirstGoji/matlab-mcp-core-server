@@ -18,7 +18,7 @@ func TestGetUserConfig_HappyPath(t *testing.T) {
 
 	// Assert
 	require.NoError(t, err)
-	require.Len(t, config, 8)
+	require.Len(t, config, 9)
 
 	expectedKeys := []string{
 		"PreferredLocalMATLABRoot",
@@ -29,6 +29,7 @@ func TestGetUserConfig_HappyPath(t *testing.T) {
 		"MATLABDisplayMode",
 		"MATLABSessionMode",
 		"ExtensionFile",
+		"LogLevel",
 	}
 
 	for _, key := range expectedKeys {
