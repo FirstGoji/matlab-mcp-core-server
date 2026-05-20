@@ -478,3 +478,14 @@ echo "OK: $(1) are up to date."
 endef
 
 CHECK_GIT_CLEAN = $(strip $(CHECK_GIT_CLEAN_CMD))
+
+REPO_URL = $(shell git remote get-url origin | sed 's|git@\(.*\):\(.*\)\.git|https://\1/\2|')
+
+compare-commits:
+ifndef BASE
+	$(error Usage: make compare-commits BASE=branch-or-tag HEAD=branch-or-tag)
+endif
+ifndef HEAD
+	$(error Usage: make compare-commits BASE=branch-or-tag HEAD=branch-or-tag)
+endif
+	@echo "$(REPO_URL)/compare/$$(git rev-parse $(BASE))...$$(git rev-parse $(HEAD))"
