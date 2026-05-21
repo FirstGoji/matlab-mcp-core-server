@@ -150,7 +150,7 @@ func Initialize(serverDefinition ApplicationDefinition) *Application {
 	matlabStartingDirSelector := matlabstartingdirselector.New(factory, osFacade, rootStore, rootPathResolver)
 	sessionManager := sessionmanager.New(matlabManager, factory, matlabRootSelector, matlabStartingDirSelector)
 	globalMATLAB := globalmatlab.New(sessionManager)
-	sdkFactory := sdk.NewFactory(factory, serverDefinition, rootStore, loggerFactory, globalMATLAB)
+	sdkFactory := sdk.NewFactory(factory, serverDefinition, rootStore, loggerFactory, globalMATLAB, telemetryFactory)
 	usecase := listavailablematlabs.New(matlabManager)
 	tool := listavailablematlabs2.New(loggerFactory, usecase)
 	startmatlabsessionUsecase := startmatlabsession.New(matlabManager)

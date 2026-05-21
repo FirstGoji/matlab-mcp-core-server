@@ -145,7 +145,7 @@ func TestFactory_Telemetry_HappyPath(t *testing.T) {
 	mockInstrumentFactory.EXPECT().
 		NewInt64Counter(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(mockInt64Counter, nil).
-		Once()
+		Twice()
 
 	factory := telemetry.NewFactory(
 		mockLoggerFactory,
@@ -420,7 +420,7 @@ func TestFactory_Telemetry_TelemetryDisabled(t *testing.T) {
 			mock.Anything,
 		).
 		Return(mockInt64Counter, nil).
-		Once()
+		Twice()
 
 	factory := telemetry.NewFactory(
 		mockLoggerFactory,
@@ -518,7 +518,7 @@ func TestFactory_Telemetry_EmptyCollectorEndpoint(t *testing.T) {
 			mock.Anything,
 		).
 		Return(mockInt64Counter, nil).
-		Once()
+		Twice()
 
 	factory := telemetry.NewFactory(
 		mockLoggerFactory,
@@ -909,7 +909,7 @@ func TestFactory_Telemetry_IsSingleton(t *testing.T) {
 	mockInstrumentFactory.EXPECT().
 		NewInt64Counter(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(mockInt64Counter, nil).
-		Once()
+		Twice()
 
 	factory := telemetry.NewFactory(
 		mockLoggerFactory,

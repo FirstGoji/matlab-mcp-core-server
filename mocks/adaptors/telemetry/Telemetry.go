@@ -7,6 +7,7 @@ package mocks
 import (
 	"context"
 
+	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/telemetry"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -35,6 +36,52 @@ type MockTelemetry_Expecter struct {
 
 func (_m *MockTelemetry) EXPECT() *MockTelemetry_Expecter {
 	return &MockTelemetry_Expecter{mock: &_m.Mock}
+}
+
+// RecordClientConnection provides a mock function for the type MockTelemetry
+func (_mock *MockTelemetry) RecordClientConnection(ctx context.Context, info telemetry.ClientConnectionInfo) {
+	_mock.Called(ctx, info)
+	return
+}
+
+// MockTelemetry_RecordClientConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RecordClientConnection'
+type MockTelemetry_RecordClientConnection_Call struct {
+	*mock.Call
+}
+
+// RecordClientConnection is a helper method to define mock.On call
+//   - ctx context.Context
+//   - info telemetry.ClientConnectionInfo
+func (_e *MockTelemetry_Expecter) RecordClientConnection(ctx interface{}, info interface{}) *MockTelemetry_RecordClientConnection_Call {
+	return &MockTelemetry_RecordClientConnection_Call{Call: _e.mock.On("RecordClientConnection", ctx, info)}
+}
+
+func (_c *MockTelemetry_RecordClientConnection_Call) Run(run func(ctx context.Context, info telemetry.ClientConnectionInfo)) *MockTelemetry_RecordClientConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 telemetry.ClientConnectionInfo
+		if args[1] != nil {
+			arg1 = args[1].(telemetry.ClientConnectionInfo)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockTelemetry_RecordClientConnection_Call) Return() *MockTelemetry_RecordClientConnection_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockTelemetry_RecordClientConnection_Call) RunAndReturn(run func(ctx context.Context, info telemetry.ClientConnectionInfo)) *MockTelemetry_RecordClientConnection_Call {
+	_c.Run(run)
+	return _c
 }
 
 // RecordServerStart provides a mock function for the type MockTelemetry

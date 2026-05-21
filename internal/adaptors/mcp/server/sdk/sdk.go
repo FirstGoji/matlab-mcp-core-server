@@ -4,9 +4,13 @@ package sdk
 
 import (
 	"context"
+	"encoding/json"
+	"maps"
+	"slices"
 
 	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/application/config"
 	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/application/definition"
+	"github.com/matlab/matlab-mcp-core-server/internal/adaptors/telemetry"
 	"github.com/matlab/matlab-mcp-core-server/internal/entities"
 	"github.com/matlab/matlab-mcp-core-server/internal/messages"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -35,17 +39,22 @@ type GlobalMATLAB interface {
 	Client(ctx context.Context, logger entities.Logger) (entities.MATLABSessionClient, error)
 }
 
+type TelemetryFactory interface {
+	Telemetry() (telemetry.Telemetry, messages.Error)
+}
+
 type MCPSession interface {
 	InitializeParams() *mcp.InitializeParams
 	ListRoots(ctx context.Context, params *mcp.ListRootsParams) (*mcp.ListRootsResult, error)
 }
 
 type Factory struct {
-	configFactory ConfigFactory
-	definition    Definition
-	rootStore     RootStore
-	loggerFactory LoggerFactory
-	globalMATLAB  GlobalMATLAB
+	configFactory    ConfigFactory
+	definition       Definition
+	rootStore        RootStore
+	loggerFactory    LoggerFactory
+	globalMATLAB     GlobalMATLAB
+	telemetryFactory TelemetryFactory
 }
 
 type serverCallbackHandler struct {
@@ -54,6 +63,7 @@ type serverCallbackHandler struct {
 	features     definition.Features
 	rootStore    RootStore
 	globalMATLAB GlobalMATLAB
+	telemetry    telemetry.Telemetry
 }
 
 func NewFactory(
@@ -62,13 +72,15 @@ func NewFactory(
 	rootStore RootStore,
 	loggerFactory LoggerFactory,
 	globalMATLAB GlobalMATLAB,
+	telemetryFactory TelemetryFactory,
 ) *Factory {
 	return &Factory{
-		configFactory: configFactory,
-		definition:    definition,
-		rootStore:     rootStore,
-		loggerFactory: loggerFactory,
-		globalMATLAB:  globalMATLAB,
+		configFactory:    configFactory,
+		definition:       definition,
+		rootStore:        rootStore,
+		loggerFactory:    loggerFactory,
+		globalMATLAB:     globalMATLAB,
+		telemetryFactory: telemetryFactory,
 	}
 }
 
@@ -83,12 +95,18 @@ func (f *Factory) NewServer() (*mcp.Server, messages.Error) {
 		return nil, err
 	}
 
+	tel, err := f.telemetryFactory.Telemetry()
+	if err != nil {
+		return nil, err
+	}
+
 	s := &serverCallbackHandler{
 		config:       cfg,
 		logger:       logger,
 		features:     f.definition.Features(),
 		rootStore:    f.rootStore,
 		globalMATLAB: f.globalMATLAB,
+		telemetry:    tel,
 	}
 
 	impl := &mcp.Implementation{
@@ -112,6 +130,7 @@ func (s *serverCallbackHandler) handleInitialized(ctx context.Context, req *mcp.
 	}
 
 	s.logClientDetails(req.Session)
+	s.recordClientConnection(ctx, req.Session)
 
 	if err := s.updateRoots(ctx, req.Session); err != nil {
 		s.logger.
@@ -138,6 +157,60 @@ func (s *serverCallbackHandler) handleRootsListChanged(ctx context.Context, req 
 	if err := s.updateRoots(ctx, req.Session); err != nil {
 		s.logger.WithError(err).Warn("failed to update MCP roots, using fallback starting folder")
 	}
+}
+
+func (s *serverCallbackHandler) recordClientConnection(ctx context.Context, session MCPSession) {
+	initializeParams := session.InitializeParams()
+	if initializeParams == nil {
+		return
+	}
+
+	info := telemetry.ClientConnectionInfo{}
+
+	if initializeParams.ClientInfo != nil {
+		info.Name = initializeParams.ClientInfo.Name
+		info.Title = initializeParams.ClientInfo.Title
+		info.WebsiteURL = initializeParams.ClientInfo.WebsiteURL
+		info.Version = initializeParams.ClientInfo.Version
+	}
+
+	if initializeParams.Capabilities != nil {
+		info.Capabilities, info.CapabilitiesJSON = marshalCapabilities(initializeParams.Capabilities)
+	}
+
+	s.telemetry.RecordClientConnection(ctx, info)
+}
+
+func marshalCapabilities(caps *mcp.ClientCapabilities) ([]string, string) {
+	data, err := json.Marshal(caps)
+	if err != nil {
+		return nil, ""
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return nil, string(data)
+	}
+
+	// The legacy "roots" field is a non-pointer struct that always marshals even when empty.
+	// Replace it with RootsV2 (the authoritative pointer field) or remove it entirely.
+	delete(fields, "roots")
+	if caps.RootsV2 != nil {
+		rootsJSON, err := json.Marshal(caps.RootsV2)
+		if err == nil {
+			fields["roots"] = rootsJSON
+		}
+	}
+
+	names := slices.Collect(maps.Keys(fields))
+	slices.Sort(names)
+
+	detailsJSON, err := json.Marshal(fields)
+	if err != nil {
+		return names, string(data)
+	}
+
+	return names, string(detailsJSON)
 }
 
 func (s *serverCallbackHandler) logClientDetails(session MCPSession) {

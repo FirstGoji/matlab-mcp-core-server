@@ -46,6 +46,11 @@ func TestNewOTELTelemetry_HappyPath(t *testing.T) {
 		Return(mockInt64Counter, nil).
 		Once()
 
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.client_connections", "Number of times a client connected to a server", "{connection}").
+		Return(mockInt64Counter, nil).
+		Once()
+
 	// Act
 	result, err := telemetry.NewOTELTelemetryForTesting(testLogger, meter, mockInstrumentFactory, mockConfig, nil, mockOSLayer, mockOSVersionProvider, mockServerDefinition)
 
@@ -78,6 +83,49 @@ func TestNewOTELTelemetry_InstrumentCreationFails(t *testing.T) {
 
 	mockInstrumentFactory.EXPECT().
 		NewInt64Counter(meter, "server.starts", "Number of times the server has started", "{start}").
+		Return(nil, instrumentError).
+		Once()
+
+	// Act
+	result, err := telemetry.NewOTELTelemetryForTesting(testLogger, meter, mockInstrumentFactory, mockConfig, nil, mockOSLayer, mockOSVersionProvider, mockServerDefinition)
+
+	// Assert
+	require.Nil(t, result)
+	require.Equal(t, expectedError, err)
+}
+
+func TestNewOTELTelemetry_ClientConnectionCounterCreationFails(t *testing.T) {
+	// Arrange
+	mockInstrumentFactory := &telemetrymocks.MockInstrumentFactory{}
+	defer mockInstrumentFactory.AssertExpectations(t)
+
+	mockInt64Counter := &instrumentsmocks.MockInt64Counter{}
+	defer mockInt64Counter.AssertExpectations(t)
+
+	mockConfig := &configmocks.MockConfig{}
+	defer mockConfig.AssertExpectations(t)
+
+	mockOSLayer := &telemetrymocks.MockOSLayer{}
+	defer mockOSLayer.AssertExpectations(t)
+
+	mockServerDefinition := &telemetrymocks.MockDefinition{}
+	defer mockServerDefinition.AssertExpectations(t)
+
+	mockOSVersionProvider := &telemetrymocks.MockOSVersionProvider{}
+	defer mockOSVersionProvider.AssertExpectations(t)
+
+	testLogger := testutils.NewInspectableLogger()
+	meter := noop.NewMeterProvider().Meter("test")
+	instrumentError := assert.AnError
+	expectedError := messages.New_StartupErrors_TelemetryInitializationFailed_Error()
+
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.starts", "Number of times the server has started", "{start}").
+		Return(mockInt64Counter, nil).
+		Once()
+
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.client_connections", "Number of times a client connected to a server", "{connection}").
 		Return(nil, instrumentError).
 		Once()
 
@@ -135,6 +183,11 @@ func TestOTELTelemetry_RecordServerStart_HappyPath(t *testing.T) {
 
 	mockInstrumentFactory.EXPECT().
 		NewInt64Counter(meter, "server.starts", "Number of times the server has started", "{start}").
+		Return(mockInt64Counter, nil).
+		Once()
+
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.client_connections", "Number of times a client connected to a server", "{connection}").
 		Return(mockInt64Counter, nil).
 		Once()
 
@@ -223,6 +276,11 @@ func TestOTELTelemetry_RecordServerStart_WatchdogModeSkips(t *testing.T) {
 		Return(mockInt64Counter, nil).
 		Once()
 
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.client_connections", "Number of times a client connected to a server", "{connection}").
+		Return(mockInt64Counter, nil).
+		Once()
+
 	mockConfig.EXPECT().
 		WatchdogMode().
 		Return(true).
@@ -286,6 +344,11 @@ func TestOTELTelemetry_RecordServerStart_OSVersionError(t *testing.T) {
 		Return(mockInt64Counter, nil).
 		Once()
 
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.client_connections", "Number of times a client connected to a server", "{connection}").
+		Return(mockInt64Counter, nil).
+		Once()
+
 	mockConfig.EXPECT().
 		WatchdogMode().
 		Return(false).
@@ -335,6 +398,163 @@ func TestOTELTelemetry_RecordServerStart_OSVersionError(t *testing.T) {
 
 	// Act
 	otelTelemetry.RecordServerStart(t.Context())
+
+	// Assert
+	// Assertions are verified via deferred mock expectations.
+}
+
+func TestOTELTelemetry_RecordClientConnection_HappyPath(t *testing.T) {
+	// Arrange
+	mockInstrumentFactory := &telemetrymocks.MockInstrumentFactory{}
+	defer mockInstrumentFactory.AssertExpectations(t)
+
+	mockServerStartCounter := &instrumentsmocks.MockInt64Counter{}
+	defer mockServerStartCounter.AssertExpectations(t)
+
+	mockClientConnectionCounter := &instrumentsmocks.MockInt64Counter{}
+	defer mockClientConnectionCounter.AssertExpectations(t)
+
+	mockConfig := &configmocks.MockConfig{}
+	defer mockConfig.AssertExpectations(t)
+
+	mockOSLayer := &telemetrymocks.MockOSLayer{}
+	defer mockOSLayer.AssertExpectations(t)
+
+	mockServerDefinition := &telemetrymocks.MockDefinition{}
+	defer mockServerDefinition.AssertExpectations(t)
+
+	mockOSVersionProvider := &telemetrymocks.MockOSVersionProvider{}
+	defer mockOSVersionProvider.AssertExpectations(t)
+
+	mockDirectory := &telemetrymocks.MockDirectory{}
+	defer mockDirectory.AssertExpectations(t)
+
+	testLogger := testutils.NewInspectableLogger()
+	meter := noop.NewMeterProvider().Meter("test")
+
+	expectedInstanceID := "test-instance-id"
+	expectedClientName := "vscode"
+	expectedClientTitle := "Visual Studio Code"
+	expectedClientURL := "https://code.visualstudio.com"
+	expectedClientVersion := "1.0.0"
+	expectedCapabilities := []string{"roots", "sampling"}
+	expectedCapabilitiesJSON := `{"roots":{"listChanged":true},"sampling":{}}`
+
+	expectedAttributes := []attribute.KeyValue{
+		attribute.String("server.instance_id", expectedInstanceID),
+		attribute.String("client.name", expectedClientName),
+		attribute.String("client.title", expectedClientTitle),
+		attribute.String("client.website_url", expectedClientURL),
+		attribute.String("client.version", expectedClientVersion),
+		attribute.StringSlice("client.capabilities", expectedCapabilities),
+		attribute.String("client.capabilities_details", expectedCapabilitiesJSON),
+	}
+
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.starts", "Number of times the server has started", "{start}").
+		Return(mockServerStartCounter, nil).
+		Once()
+
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.client_connections", "Number of times a client connected to a server", "{connection}").
+		Return(mockClientConnectionCounter, nil).
+		Once()
+
+	mockDirectory.EXPECT().
+		ID().
+		Return(expectedInstanceID).
+		Once()
+
+	mockClientConnectionCounter.EXPECT().
+		Add(mock.Anything, int64(1), expectedAttributes).
+		Once()
+
+	otelTelemetry, err := telemetry.NewOTELTelemetryForTesting(testLogger, meter, mockInstrumentFactory, mockConfig, mockDirectory, mockOSLayer, mockOSVersionProvider, mockServerDefinition)
+	require.NoError(t, err)
+
+	info := telemetry.ClientConnectionInfo{
+		Name:             expectedClientName,
+		Title:            expectedClientTitle,
+		WebsiteURL:       expectedClientURL,
+		Version:          expectedClientVersion,
+		Capabilities:     expectedCapabilities,
+		CapabilitiesJSON: expectedCapabilitiesJSON,
+	}
+
+	// Act
+	otelTelemetry.RecordClientConnection(t.Context(), info)
+
+	// Assert
+	// Assertions are verified via deferred mock expectations.
+}
+
+func TestOTELTelemetry_RecordClientConnection_EmptyInfo(t *testing.T) {
+	// Arrange
+	mockInstrumentFactory := &telemetrymocks.MockInstrumentFactory{}
+	defer mockInstrumentFactory.AssertExpectations(t)
+
+	mockServerStartCounter := &instrumentsmocks.MockInt64Counter{}
+	defer mockServerStartCounter.AssertExpectations(t)
+
+	mockClientConnectionCounter := &instrumentsmocks.MockInt64Counter{}
+	defer mockClientConnectionCounter.AssertExpectations(t)
+
+	mockConfig := &configmocks.MockConfig{}
+	defer mockConfig.AssertExpectations(t)
+
+	mockOSLayer := &telemetrymocks.MockOSLayer{}
+	defer mockOSLayer.AssertExpectations(t)
+
+	mockServerDefinition := &telemetrymocks.MockDefinition{}
+	defer mockServerDefinition.AssertExpectations(t)
+
+	mockOSVersionProvider := &telemetrymocks.MockOSVersionProvider{}
+	defer mockOSVersionProvider.AssertExpectations(t)
+
+	mockDirectory := &telemetrymocks.MockDirectory{}
+	defer mockDirectory.AssertExpectations(t)
+
+	testLogger := testutils.NewInspectableLogger()
+	meter := noop.NewMeterProvider().Meter("test")
+
+	expectedInstanceID := "test-instance-id"
+
+	expectedAttributes := []attribute.KeyValue{
+		attribute.String("server.instance_id", expectedInstanceID),
+		attribute.String("client.name", ""),
+		attribute.String("client.title", ""),
+		attribute.String("client.website_url", ""),
+		attribute.String("client.version", ""),
+		attribute.StringSlice("client.capabilities", nil),
+		attribute.String("client.capabilities_details", ""),
+	}
+
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.starts", "Number of times the server has started", "{start}").
+		Return(mockServerStartCounter, nil).
+		Once()
+
+	mockInstrumentFactory.EXPECT().
+		NewInt64Counter(meter, "server.client_connections", "Number of times a client connected to a server", "{connection}").
+		Return(mockClientConnectionCounter, nil).
+		Once()
+
+	mockDirectory.EXPECT().
+		ID().
+		Return(expectedInstanceID).
+		Once()
+
+	mockClientConnectionCounter.EXPECT().
+		Add(mock.Anything, int64(1), expectedAttributes).
+		Once()
+
+	otelTelemetry, err := telemetry.NewOTELTelemetryForTesting(testLogger, meter, mockInstrumentFactory, mockConfig, mockDirectory, mockOSLayer, mockOSVersionProvider, mockServerDefinition)
+	require.NoError(t, err)
+
+	info := telemetry.ClientConnectionInfo{}
+
+	// Act
+	otelTelemetry.RecordClientConnection(t.Context(), info)
 
 	// Assert
 	// Assertions are verified via deferred mock expectations.

@@ -54,8 +54,18 @@ type Definition interface {
 	Name() string
 }
 
+type ClientConnectionInfo struct {
+	Name             string
+	Title            string
+	WebsiteURL       string
+	Version          string
+	Capabilities     []string
+	CapabilitiesJSON string
+}
+
 type Telemetry interface {
 	RecordServerStart(ctx context.Context)
+	RecordClientConnection(ctx context.Context, info ClientConnectionInfo)
 }
 
 type Factory struct {

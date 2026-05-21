@@ -34,7 +34,8 @@ type otelTelemetry struct {
 	definition        Definition
 
 	// Instruments
-	serverStartCounter instruments.Int64Counter
+	serverStartCounter      instruments.Int64Counter
+	clientConnectionCounter instruments.Int64Counter
 }
 
 func newOTELTelemetry(
@@ -73,36 +74,37 @@ func (t *otelTelemetry) RecordServerStart(ctx context.Context) {
 	}
 
 	t.logger.Debug("Recording server start metric")
-	attributes := NewAttributes()
+	attributes := NewAttributes(t.logger)
 
-	if err := attributes.AddString("server.instance_id", t.directory.ID()); err != nil {
-		t.logger.WithError(err).Debug("Failed to add server.instance_id attribute")
-	}
-	if err := attributes.AddString("server.name", t.definition.Name()); err != nil {
-		t.logger.WithError(err).Debug("Failed to add server.name attribute")
-	}
-	if err := attributes.AddString("server.version", t.config.Version()); err != nil {
-		t.logger.WithError(err).Debug("Failed to add server.version attribute")
-	}
-	if err := attributes.AddStringSlice("server.specified_parameters", t.config.SpecifiedParameters()); err != nil {
-		t.logger.WithError(err).Debug("Failed to add server.specified_parameters attribute")
-	}
-	if err := attributes.AddString("server.config_details", t.config.AsPIISafeJSONString()); err != nil {
-		t.logger.WithError(err).Debug("Failed to add server.config_details attribute")
-	}
-	if err := attributes.AddString("server.os", t.osLayer.GOOS()); err != nil {
-		t.logger.WithError(err).Debug("Failed to add server.os attribute")
-	}
+	attributes.AddString("server.instance_id", t.directory.ID())
+	attributes.AddString("server.name", t.definition.Name())
+	attributes.AddString("server.version", t.config.Version())
+	attributes.AddStringSlice("server.specified_parameters", t.config.SpecifiedParameters())
+	attributes.AddString("server.config_details", t.config.AsPIISafeJSONString())
+	attributes.AddString("server.os", t.osLayer.GOOS())
 	osVersion, err := t.osVersionProvider.Version()
 	if err != nil {
 		t.logger.WithError(err).Debug("Failed to get OS version")
 		osVersion = ""
 	}
-	if err := attributes.AddString("server.os_version", osVersion); err != nil {
-		t.logger.WithError(err).Debug("Failed to add server.os_version attribute")
-	}
+	attributes.AddString("server.os_version", osVersion)
 
 	t.serverStartCounter.Add(ctx, 1, attributes.AsOTEL())
+}
+
+func (t *otelTelemetry) RecordClientConnection(ctx context.Context, info ClientConnectionInfo) {
+	t.logger.Debug("Recording client connection metric")
+	attributes := NewAttributes(t.logger)
+
+	attributes.AddString("server.instance_id", t.directory.ID())
+	attributes.AddString("client.name", info.Name)
+	attributes.AddString("client.title", info.Title)
+	attributes.AddString("client.website_url", info.WebsiteURL)
+	attributes.AddString("client.version", info.Version)
+	attributes.AddStringSlice("client.capabilities", info.Capabilities)
+	attributes.AddString("client.capabilities_details", info.CapabilitiesJSON)
+
+	t.clientConnectionCounter.Add(ctx, 1, attributes.AsOTEL())
 }
 
 func (t *otelTelemetry) createInstruments(logger entities.Logger) messages.Error {
@@ -115,6 +117,13 @@ func (t *otelTelemetry) createInstruments(logger entities.Logger) messages.Error
 		return messages.New_StartupErrors_TelemetryInitializationFailed_Error()
 	}
 	t.serverStartCounter = serverStartCounter
+
+	clientConnectionCounter, err := t.instrumentFactory.NewInt64Counter(t.meter, "server.client_connections", "Number of times a client connected to a server", "{connection}")
+	if err != nil {
+		logger.WithError(err).Error("Failed to create client connection counter")
+		return messages.New_StartupErrors_TelemetryInitializationFailed_Error()
+	}
+	t.clientConnectionCounter = clientConnectionCounter
 
 	return nil
 }

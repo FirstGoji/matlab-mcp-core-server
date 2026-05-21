@@ -234,6 +234,7 @@ func Initialize(serverDefinition ApplicationDefinition) *Application {
 		wire.Bind(new(sdk.RootStore), new(*rootstore.RootStore)),
 		wire.Bind(new(sdk.LoggerFactory), new(*logger.Factory)),
 		wire.Bind(new(sdk.GlobalMATLAB), new(*globalmatlab.GlobalMATLAB)),
+		wire.Bind(new(sdk.TelemetryFactory), new(*telemetry.Factory)),
 
 		// MCP Server Configurator
 		configurator.New,
