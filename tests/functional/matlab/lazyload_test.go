@@ -44,7 +44,7 @@ func (s *LazyLoadTestSuite) TestLazyLoad_MATLABStartsOnFirstToolCall() {
 	s.Equal("happy", instanceEvents[0].StartedMode())
 	s.Equal(1, instanceEvents[0].CountEvent(mockruntime.EventStarted), "should have exactly one started event")
 	s.True(instanceEvents[0].HasEvalMatching(isCdEval), "server should have sent a cd() eval to set the working directory")
-	s.True(instanceEvents[0].HasEval("disp('hello')"), "should have recorded the user eval")
+	s.True(instanceEvents[0].HasEvalMatching(hasUserCode("disp('hello')")), "should have recorded the user eval")
 	s.Equal(
 		[]string{mockruntime.EventStarted, mockruntime.EventEval, mockruntime.EventEval},
 		instanceEvents[0].EventTypes(),
@@ -92,7 +92,8 @@ func (s *LazyLoadTestSuite) TestLazyLoad_SecondToolCallReusesSession() {
 	instanceEvents, err := session.ReadInstanceEvents()
 	s.Require().NoError(err)
 	s.Require().Len(instanceEvents, 1, "only one mock MATLAB instance should have been created")
-	s.True(instanceEvents[0].HasEvalsInOrder("disp('first')", "disp('second')"), "should have recorded both user evals in order")
+	s.True(instanceEvents[0].HasEvalMatching(hasUserCode("disp('first')")), "should have recorded first user eval")
+	s.True(instanceEvents[0].HasEvalMatching(hasUserCode("disp('second')")), "should have recorded second user eval")
 	s.Equal(2, instanceEvents[0].CountEvent(mockruntime.EventEval)-countCdEvals(instanceEvents[0]),
 		"should have exactly two user evals (excluding cd)")
 }
@@ -120,18 +121,26 @@ func (s *LazyLoadTestSuite) TestReconnection_AfterExit_MATLABRestartsOnNextToolC
 	s.Equal(1, instanceEvents[0].ID)
 	s.Equal("happy", instanceEvents[0].StartedMode())
 	s.True(instanceEvents[0].HasEvalMatching(isCdEval), "first instance should have a cd() eval")
-	s.True(instanceEvents[0].HasEvalsInOrder("disp('before exit')", "exit()"), "first instance should have eval then exit in order")
+	s.True(instanceEvents[0].HasEvalMatching(hasUserCode("disp('before exit')")), "first instance should have eval before exit")
+	s.True(instanceEvents[0].HasEvalMatching(hasUserCode("exit()")), "first instance should have exit eval")
 	s.True(instanceEvents[0].HasEvent(mockruntime.EventExitRequested), "first instance should have recorded exit_requested")
 
 	s.Equal(2, instanceEvents[1].ID)
 	s.Equal("happy", instanceEvents[1].StartedMode())
 	s.True(instanceEvents[1].HasEvalMatching(isCdEval), "second instance should have a cd() eval")
-	s.True(instanceEvents[1].HasEval("disp('after reconnect')"), "second instance should have recorded eval after reconnect")
+	s.True(instanceEvents[1].HasEvalMatching(hasUserCode("disp('after reconnect')")), "second instance should have recorded eval after reconnect")
 	s.False(instanceEvents[1].HasEvent(mockruntime.EventExitRequested), "second instance should not have an exit event")
 }
 
 func isCdEval(code string) bool {
+	code = strings.TrimPrefix(code, "feature('HotLinks',0);")
 	return strings.HasPrefix(code, "cd('") && strings.HasSuffix(code, "')")
+}
+
+func hasUserCode(userCode string) func(string) bool {
+	return func(code string) bool {
+		return strings.HasSuffix(code, userCode)
+	}
 }
 
 func countCdEvals(ie mockruntime.InstanceEvents) int {

@@ -44,12 +44,14 @@ type AttachToExistingSession struct{}
 func (a AttachToExistingSession) interfacelock() {}
 
 type EvalRequest struct {
-	Code string
+	Code     string
+	HotLinks bool
 }
 
 type EvalResponse struct {
 	ConsoleOutput string
 	Images        [][]byte
+	PromptType    int
 }
 
 type FEvalRequest struct {

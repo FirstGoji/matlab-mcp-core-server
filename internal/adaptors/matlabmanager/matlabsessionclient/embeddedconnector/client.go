@@ -70,11 +70,19 @@ func (c *Client) SetPingRetry(retry time.Duration) {
 }
 
 func (c *Client) Eval(ctx context.Context, logger entities.Logger, input entities.EvalRequest) (entities.EvalResponse, error) {
+	code := input.Code
+	if !input.HotLinks {
+		code = fmt.Sprintf("feature('HotLinks',0);%s", input.Code)
+	}
+	return c.sendEval(ctx, logger, code)
+}
+
+func (c *Client) sendEval(ctx context.Context, logger entities.Logger, code string) (entities.EvalResponse, error) {
 	payload := ConnectorPayload{
 		Messages: ConnectorMessage{
 			Eval: []EvalMessage{
 				{
-					Code: input.Code,
+					Code: code,
 				},
 			},
 		},
@@ -86,18 +94,20 @@ func (c *Client) Eval(ctx context.Context, logger entities.Logger, input entitie
 	}
 
 	if len(response.Messages.EvalResponse) == 0 {
-		logger.
-			Debug("No EvalResponse messages received")
+		logger.Debug("No EvalResponse messages received")
 		return entities.EvalResponse{}, fmt.Errorf("no response messages received")
 	}
 
 	if response.Messages.EvalResponse[0].IsError {
-		return entities.EvalResponse{}, newMATLABError(response.Messages.EvalResponse[0].ResponseStr)
+		return entities.EvalResponse{
+			PromptType: response.Messages.EvalResponse[0].PromptType,
+		}, newMATLABError(response.Messages.EvalResponse[0].ResponseStr)
 	}
 
 	return entities.EvalResponse{
 		ConsoleOutput: response.Messages.EvalResponse[0].ResponseStr,
 		Images:        nil,
+		PromptType:    response.Messages.EvalResponse[0].PromptType,
 	}, nil
 }
 

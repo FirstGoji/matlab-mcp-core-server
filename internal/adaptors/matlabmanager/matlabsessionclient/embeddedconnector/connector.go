@@ -1,4 +1,4 @@
-// Copyright 2025 The MathWorks, Inc.
+// Copyright 2025-2026 The MathWorks, Inc.
 
 package embeddedconnector
 
@@ -30,13 +30,13 @@ type EvalMessage struct {
 type EvalResponseMessage struct {
 	IsError     bool   `json:"isError"`
 	ResponseStr string `json:"responseStr"`
+	PromptType  int    `json:"promptType"`
 }
 
 type FevalMessage struct {
 	Function  string   `json:"function"`
 	Arguments []string `json:"arguments"`
 	Nargout   int      `json:"nargout"`
-	DequeMode string   `json:"dequeMode"`
 }
 
 type FevalResponseMessage struct {
