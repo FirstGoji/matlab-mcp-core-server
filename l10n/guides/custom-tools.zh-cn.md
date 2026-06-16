@@ -2,10 +2,10 @@
 -Source English Markdown:
 -- File: ./guides/custom-tools.md
 -- Branch: main
--- Commit: a74f0896e40f57ed6755bcf6ac6511dd8bdb6cd2
+-- Commit: 636e98276e7a15d7854500e6cd1664add8e27c10
  -->
 
-# 在 MATLAB MCP Core Server 中使用自定义工具
+# 在 MATLAB MCP Server 中使用自定义工具
 
 <p align="center">
   <a href="../../guides/custom-tools.md">English</a> •
@@ -15,7 +15,7 @@
   简体中文
 </p>
 
-本指南介绍如何在 MATLAB MCP Core Server 中使用自定义工具。 
+本指南介绍如何在 MATLAB MCP Server 中使用自定义工具。 
 
 您可以将任意 MATLAB 函数公开为 MCP 工具，通过 JSON 文件进行定义。服务器在启动时加载您的工具定义，并将其与内置工具一起注册。当您的 AI 应用程序调用自定义工具时，服务器会执行 MATLAB 函数并返回命令行窗口输出。MATLAB 函数必须位于 MATLAB 路径上。要更新工具定义，请编辑扩展文件并重新启动服务器。
 

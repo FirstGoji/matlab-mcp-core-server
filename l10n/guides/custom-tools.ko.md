@@ -2,10 +2,10 @@
 Source English Markdown:
 - File: ./guides/custom-tools.md
 - Branch: main
-- Commit: a74f0896e40f57ed6755bcf6ac6511dd8bdb6cd2
+- Commit: 636e98276e7a15d7854500e6cd1664add8e27c10
 -->
 
-# MATLAB MCP Core Server에서 사용자 지정 툴 사용하기
+# MATLAB MCP Server에서 사용자 지정 툴 사용하기
 
 <p align="center">
   <a href="../../guides/custom-tools.md">English</a> •
@@ -15,7 +15,7 @@ Source English Markdown:
   <a href="custom-tools.zh-cn.md">简体中文</a>
 </p>
 
-이 가이드에서는 MATLAB MCP Core Server에서 사용자 지정 툴을 사용하는 방법을 설명합니다.
+이 가이드에서는 MATLAB MCP Server에서 사용자 지정 툴을 사용하는 방법을 설명합니다.
 
 MATLAB 함수에 대해 JSON 파일로 툴 정의를 만들어 MCP 툴로 노출할 수 있습니다. 서버는 시작 시 이 정의들을 불러와 기본 제공 툴과 함께 등록합니다. AI 애플리케이션이 사용자 지정 툴을 호출하면 서버가 MATLAB 함수를 실행하고 명령 창 출력을 반환합니다. MATLAB 함수는 MATLAB 경로에 있어야 합니다. 툴 정의를 업데이트하려면 확장 파일을 편집한 후 서버를 다시 시작하십시오.
 

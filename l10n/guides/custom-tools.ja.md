@@ -2,10 +2,10 @@
 Source English Markdown:
 - File: ./guides/custom-tools.md
 - Branch: main
-- Commit: a74f0896e40f57ed6755bcf6ac6511dd8bdb6cd2
+- Commit: 636e98276e7a15d7854500e6cd1664add8e27c10
 -->
 
-# MATLAB MCP Core Server でのカスタム ツールの使用
+# MATLAB MCP Server でのカスタム ツールの使用
 
 <p align="center">
   <a href="../../guides/custom-tools.md">English</a> •
@@ -15,7 +15,7 @@ Source English Markdown:
   <a href="custom-tools.zh-cn.md">简体中文</a>
 </p>
 
-このガイドでは、MATLAB MCP Core Server でカスタム ツールを使用する方法を説明します。
+このガイドでは、MATLAB MCP Server でカスタム ツールを使用する方法を説明します。
 
 任意の MATLAB 関数を、JSON ファイルで定義された MCP ツールとして公開できます。サーバーは起動時にツール定義を読み込み、組み込みツールとともに登録します。AI アプリケーションがカスタム ツールを呼び出すと、サーバーは MATLAB 関数を実行し、コマンド ウィンドウの出力を返します。MATLAB 関数は MATLAB パス上に存在する必要があります。ツール定義を更新するには、拡張ファイルを編集してサーバーを再起動してください。
 

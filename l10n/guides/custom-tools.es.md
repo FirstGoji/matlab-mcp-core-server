@@ -1,11 +1,11 @@
- <!--
--Source English Markdown:
--- File: ./guides/custom-tools.md
--- Branch: main
--- Commit: a74f0896e40f57ed6755bcf6ac6511dd8bdb6cd2
- -->
+<!--
+Source English Markdown:
+- File: ./guides/custom-tools.md
+- Branch: main
+- Commit: 636e98276e7a15d7854500e6cd1664add8e27c10
+-->
 
-# Usar herramientas personalizadas con MATLAB MCP Core Server
+# Usar herramientas personalizadas con MATLAB MCP Server
 
 <p align="center">
   <a href="../../guides/custom-tools.md">English</a> •
@@ -15,7 +15,7 @@
   <a href="custom-tools.zh-cn.md">简体中文</a>
 </p>
 
-Esta guía muestra cómo usar herramientas personalizadas con MATLAB MCP Core Server. 
+Esta guía muestra cómo usar herramientas personalizadas con MATLAB MCP Server. 
 
 Puede exponer cualquier función de MATLAB como herramientas MCP definidas en archivos JSON. El servidor carga las definiciones de herramientas al inicio y las registra junto con las herramientas integradas. Cuando su aplicación de IA llama a una herramienta personalizada, el servidor ejecuta la función de MATLAB y devuelve la salida de la ventana de comandos. La función de MATLAB debe estar en el path de MATLAB. Para actualizar las definiciones de herramientas, edite los archivos de extensión y reinicie el servidor.
 
